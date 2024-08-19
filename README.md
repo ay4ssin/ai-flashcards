@@ -18,7 +18,7 @@ Traditional study methods can be time-consuming and inefficient. StudyBunny addr
 
 [Project Presentation Link](https://docs.google.com/presentation/d/1_RwD8LFh0juBMTz9_vgLyQeCRQD6VIQ8sAcFv1AdzUI/edit?usp=sharing)
 
-[Youtube Demo Link]()
+[Youtube Demo Link](https://youtu.be/NY3uFz6GXGM)
 ## Authors
 
 - [@ay4ssin](https://www.github.com/ay4ssin)
