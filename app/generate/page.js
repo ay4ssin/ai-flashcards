@@ -38,6 +38,8 @@ import {
 
 import { useRouter } from 'next/navigation';
 import {useUser,  SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import LoadingIndicator from '../components/LoadingIndicator';
+
 
 export default function Generate() {
   const {isLoaded, isSignedIn, user} = useUser()
@@ -49,6 +51,7 @@ export default function Generate() {
   const [numFlashcards, setNumFlashcards] = useState('');
   const [flashcardTypes, setFlashcardTypes] = useState([]);
   const [alertOpen, setAlertOpen] = useState(false); // State to control alert visibility
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter()
 
   const availableFlashcardTypes = [
@@ -60,6 +63,12 @@ export default function Generate() {
   ];
 
   const handleSubmit = async () => {
+    if (!isSignedIn) {
+      setAlertOpen(true);
+      return;
+    }
+
+    setIsLoading(true);
     try {
         const response = await fetch('/api/generate', {
             method: 'POST',
@@ -80,6 +89,8 @@ export default function Generate() {
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to generate flashcards. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
 }
 
@@ -147,7 +158,7 @@ export default function Generate() {
       <AppBar position="static" sx={{ backgroundColor: 'primary.bar' }}>
         <Toolbar>
         <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1 }}>
-              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">Flashcard SaaS</Typography>
+              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">StudyBunny</Typography>
           </Link>
           <Button variant="contained" sx={{mr:2, bgcolor:'primary.bar', color: 'primary.main'}} href="https://forms.gle/BaPiXZKKKfa5Dk2X7">Feedback</Button>
           <SignedOut>
@@ -162,6 +173,14 @@ export default function Generate() {
           </SignedIn>
         </Toolbar>
       </AppBar>
+
+      { isLoading ? (
+        <LoadingIndicator />
+    ) : (
+      
+      <>
+
+
       <Box sx={{ my: 4 }}>
         <Typography variant="h2" component="h1" gutterBottom
         sx={{mt:8,textAlign:'center', color:'primary.main', fontWeight:'bold', textShadow:'2px 3px 2px pink'}}>
@@ -213,12 +232,19 @@ export default function Generate() {
       />
     </>
 
+    {!isSignedIn &&(
+      <Typography color="error" sx={{ mt: 2, mb: 2}} >
+        Please sign in to generate flashcards.
+      </Typography>
+    )}
+
         <Button
           variant="contained"
           color="primary"
           onClick={handleSubmit}
           fullWidth
           sx={{bgcolor: 'secondary.main', color: 'white', mt:3}}
+          disabled={isLoading || !isSignedIn}
         >
           Generate Flashcards
         </Button>
@@ -291,6 +317,9 @@ export default function Generate() {
           </Box>
   </Box>
 )}
+</>
+)}
+
     <Dialog open={open} onClose={handleCloseDialog}>
       <DialogTitle>Save Flashcard Set</DialogTitle>
       <DialogContent>

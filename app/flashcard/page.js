@@ -95,6 +95,7 @@ export default function Flashcard() {
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [deleteCardConfirm, setDeleteCardConfirm] = useState({ open: false, id: null });
   const [deleteSetConfirm, setDeleteSetConfirm] = useState(false);
+  const [isStudyModeOpen, setStudyModeOpen] = useState(false);
 
   const searchParams = useSearchParams();
   const search = searchParams.get('id');
@@ -201,13 +202,136 @@ const handleDeleteSet = async () => {
   if (!isLoaded || !isSignedIn) {
     return <></>;
   }
+  
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function StudyMode({ isOpen, onClose, flashcards }) {
+    const [shuffledCards, setShuffledCards] = useState([]);
+    const [currentCardIndex, setCurrentCardIndex] = useState(0);
+    const [cardProgress, setCardProgress] = useState({});
+    const [userInput, setUserInput] = useState('');
+    const [feedback, setFeedback] = useState('');
+  
+    useEffect(() => {
+      // Shuffle cards when the study mode opens
+      if (isOpen) {
+        const shuffled = shuffleArray(flashcards);
+        setShuffledCards(shuffled);
+        setCurrentCardIndex(0);
+        
+        // Initialize progress for each card
+        const initialProgress = {};
+        shuffled.forEach(card => {
+          initialProgress[card.id] = 0;
+        });
+        setCardProgress(initialProgress);
+      }
+    }, [isOpen, flashcards]);
+  
+    const currentCard = shuffledCards[currentCardIndex];
+  
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      
+      try {
+        const response = await fetch('/api/studymode', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            flashcard: currentCard,
+            userAnswer: userInput
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+  
+        const data = await response.json();
+  
+        if (data.isCorrect) {
+          setCardProgress(prev => ({
+            ...prev,
+            [currentCard.id]: prev[currentCard.id] + 1
+          }));
+          setFeedback(`Correct! ${data.explanation}`);
+        } else {
+          setFeedback(`Incorrect. ${data.explanation} ${data.suggestion}`);
+        }
+  
+        setUserInput('');
+  
+        // Move to next card if all cards haven't been answered correctly 3 times
+        if (!Object.values(cardProgress).every(progress => progress >= 3)) {
+          setCurrentCardIndex((prevIndex) => (prevIndex + 1) % shuffledCards.length);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setFeedback('An error occurred while evaluating your answer. Please try again.');
+      }
+    };
+  
+    const isSessionComplete = Object.values(cardProgress).every(progress => progress >= 3);
+  
+    if (isSessionComplete) {
+      return (
+        <Dialog open={isOpen} onClose={onClose}>
+          <DialogTitle>Study Session Complete!</DialogTitle>
+          <DialogContent>
+            <Typography>Congratulations! You've answered all flashcards correctly 3 times.</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      );
+    }
+  
+    if (!currentCard) {
+      return null; // or some loading state
+    }
+  
+    return (
+      <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="md">
+        <DialogTitle>Study Mode</DialogTitle>
+        <DialogContent>
+          <Typography variant="h6">{currentCard.front}</Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              margin="normal"
+              label="Your answer"
+            />
+            <Button type="submit" variant="contained" color="primary">
+              Submit
+            </Button>
+          </form>
+          <Typography color={feedback.startsWith("Correct") ? "success.main" : "error.main"}>{feedback}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Exit Study Mode</Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 
   return (
      <Container maxWidth="100vw"  sx={{background:'linear-gradient(#FCF1F3 10%, #FFD9E1 90%)', height: '100vw'}}>
       <AppBar position="static" sx={{ backgroundColor: 'primary.bar' }}>
         <Toolbar>
         <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1 }}>
-              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">Flashcard SaaS</Typography>
+              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">StudyBunny</Typography>
           </Link>
           <Button variant="contained" sx={{mr:2, bgcolor:'primary.bar', color: 'primary.main'}} href="https://forms.gle/BaPiXZKKKfa5Dk2X7">Feedback</Button>
           <SignedOut>
@@ -239,13 +363,16 @@ const handleDeleteSet = async () => {
         />
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Button variant="contained" color="primary" onClick={() => setIsAddFormOpen(true)}>
-          Add Flashcard
+      <Button variant="contained" color="primary" onClick={() => setIsAddFormOpen(true)}>
+        Add Flashcard
+      </Button>
+      <Button variant="contained" color="secondary" onClick={() => setStudyModeOpen(true)}>
+         Study Mode
         </Button>
-        <Button variant="contained" color="secondary" onClick={() => setDeleteSetConfirm(true)}>
-          Delete Set
+       <Button variant="contained" color="secondary" onClick={() => setDeleteSetConfirm(true)}>
+        Delete Set
         </Button>
-      </Box>
+        </Box>
       <Grid container spacing={3}>
         {filteredFlashcards.map((flashcard, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
@@ -327,6 +454,11 @@ const handleDeleteSet = async () => {
         title="Delete Flashcard Set"
         content="Are you sure you want to delete this entire flashcard set? This action cannot be undone."
       />
+      <StudyMode
+      isOpen={isStudyModeOpen}
+      onClose={() => setStudyModeOpen(false)}
+      flashcards={flashcards}
+    />
     </Container>
   );
 }

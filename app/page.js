@@ -61,7 +61,7 @@ export default function Home(){
     <Box sx={{ minHeight: '100vh' }}>
       <Container maxWidth="100vw">
         <Head>
-          <title>Flashcard SaaS</title>
+          <title>StudyBunny</title>
           <meta name="description" content="Create flashcards from your text"/>
         </Head>
 
@@ -70,7 +70,7 @@ export default function Home(){
         <AppBar sx={{bgcolor: 'primary.bar'}} position="static">
           <Toolbar>
             <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1 }}>
-              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">Flashcard SaaS</Typography>
+              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">StudyBunny</Typography>
             </Link>
             <Button variant="outline" sx={{ color: 'primary.main', mr:2}} href="https://forms.gle/BaPiXZKKKfa5Dk2X7">Feedback</Button>
             <SignedOut>
@@ -88,7 +88,7 @@ export default function Home(){
   
         <Box sx={{textAlign: 'center', mt: 13, mb: 6}}>
           <Typography variant="h1" gutterBottom sx={{textShadow:'2px 3px 2px pink', fontWeight: 'bold', color: 'white', mb:-3}}>Welcome to</Typography>
-          <Typography variant="h1" gutterBottom sx={{textShadow:'2px 3px 2px pink', fontWeight: 'bold', fontStyle:"oblique", color: 'white'}}>Flashcard SaaS</Typography>
+          <Typography variant="h1" gutterBottom sx={{textShadow:'2px 3px 2px pink', fontWeight: 'bold', fontStyle:"oblique", color: 'white'}}>StudyBunny</Typography>
           <Typography variant="h5" gutterBottom sx={{ color: 'secondary.main' }}>
             The easiest way to make flashcards from your text
           </Typography>

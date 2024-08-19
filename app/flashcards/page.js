@@ -211,7 +211,7 @@ export default function Flashcard() {
       <AppBar position="static" sx={{ backgroundColor: 'primary.bar' }}>
         <Toolbar>
         <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', flexGrow: 1 }}>
-              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">Flashcard SaaS</Typography>
+              <Typography sx={{color: 'primary.main'}} variant="h6" component="span">StudyBunny</Typography>
           </Link>
           <Button variant="contained" sx={{mr:2, bgcolor:'primary.bar', color: 'primary.main'}} href="https://forms.gle/BaPiXZKKKfa5Dk2X7">Feedback</Button>
           <SignedOut>
